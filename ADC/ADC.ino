@@ -53,9 +53,7 @@ void loop(){
     bool adc_status = adc->startContinuous(Pin,ADC_0);
 
     if (adc_status == 1){
-//      int pinVal = adc->analogReadContinuous(Pin);
-        int pinVal = analogRead(Pin);
-//      int pinVal/
+      int pinVal = adc->analogReadContinuous(Pin);
       Serial.println(pinVal);
     }
     else{
