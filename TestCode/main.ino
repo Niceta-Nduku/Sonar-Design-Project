@@ -38,12 +38,14 @@ void loop(){
         would start a new thread that would start receiving the data from the pin 
     */
   
-//==========Transmission================
-for (int i = 0; i < CHIRP_ARRAY_LENGTH; i++){
-  analogWrite(chirp_pulse[i], transmit_pin);
-}
+    //==========Transmission================
+    for (int i = 0; i < CHIRP_ARRAY_LENGTH; i++){
+        analogWrite(chirp_pulse[i], transmit_pin);
+    }
 
   //========== This is just telling it to receive everything. ==========
+
+  //HTC: I'm not too sure how the whole analogReadContinuous() thang works but from context this is what I thouught would work
   for (int conversions = 0; conversions < ARRAY_SIZE; ){
     bool adc_status = adc->startContinuous(Pin,ADC_0);
     if (adc_status == 1){
