@@ -1,19 +1,4 @@
-#include <ADC.h>
-#include <DMAChannel.h>
-
-#define BUFFER_SIZE 10000                  // up to 85% of dynamic memory (65,536 bytes)
-#define SAMPLE_RATE 500000                   // see below maximum values
-#define SAMPLE_AVERAGING 0                  // 0, 4, 8, 16 or 32
-#define SAMPLING_GAIN 1                     // 1, 2, 4, 8, 16, 32 or 64
-#define SAMPLE_RESOLUTION 12                // 8, 10, 12 or 16 
-
-
-
-// Main Loop Flow
-#define CHECKINPUT_INTERVAL   50000         // 20 times per second
-#define DISPLAY_INTERVAL      100000        // 10 times per second
-#define SERIAL_PORT_SPEED     9600          // USB is always 12 Mbit/sec on teensy
-#define DEBUG                 false
+#include "main.h"
 
 unsigned long lastInAvail;       //
 unsigned long lastDisplay;       //
@@ -23,9 +8,7 @@ unsigned long func_timer; // <<<<<<<<<<< Time execution of different functions
 bool          STREAM  = false;
 bool          VERBOSE = true;
 bool          BINARY = true;
-// I/O-Pins
-const int readPin0             = A15;
-const int ledPin               = LED_BUILTIN;
+
 
 //ADC & DMA Config
 ADC *adc = new ADC(); //adc object
@@ -45,11 +28,13 @@ ADC_REFERENCE               Vref     = ADC_REFERENCE::REF_3V3;
 ADC_SAMPLING_SPEED    samp_speed     = ADC_SAMPLING_SPEED::VERY_HIGH_SPEED;
 ADC_CONVERSION_SPEED  conv_speed     = ADC_CONVERSION_SPEED::VERY_HIGH_SPEED;
 
+//test chirp
+
 // Processing Buffer
 uint16_t processed_buf[BUFFER_SIZE]; // processed data buffer
 
 void setup() { // =====================================================
-
+  analogWriteResolution(12);
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(readPin0, INPUT); // single ended
 
@@ -82,6 +67,13 @@ boolean   chunk3_sent = false;
 
 void loop() { // ===================================================
 
+  //======Sending Array
+  for (int i = 0; i < 19532;i++){
+    analogWrite(A21,chirp_pulse[i]);
+  }
+
+  //======Receiving array
+  
   // Keep track of loop time
   currentTime = micros();
   // Commands:
@@ -95,12 +87,14 @@ void loop() { // ===================================================
       
       if (inByte == 'c') { // single block conversion
           if ((aorb_busy == 1) || (aorb_busy == 2)) { stop_ADC(); }
+          
           setup_ADC_single();
           start_ADC();
           wait_ADC_single();
           stop_ADC();
           adc->printError();
           adc->resetError();
+          
       } else if (inByte == 'p') { // print buffer
           printBuffer(buf_a, 0, BUFFER_SIZE-1);
       }
@@ -167,7 +161,8 @@ void stop_ADC(void) {
     aorb_busy = 0;
 }
 
-void wait_ADC_single() {
+void wait_ADC_single(void) {
+  
   uint32_t   end_time = micros();
   uint32_t start_time = micros();
   while (!a_full) {
