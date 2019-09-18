@@ -2,10 +2,10 @@
 #include <DMAChannel.h>
 
 #define BUFFER_SIZE 10000                  // up to 85% of dynamic memory (65,536 bytes)
-#define SAMPLE_RATE 16000                   // see below maximum values
+#define SAMPLE_RATE 80000                   // see below maximum values
 #define SAMPLE_AVERAGING 0                  // 0, 4, 8, 16 or 32
 #define SAMPLING_GAIN 1                     // 1, 2, 4, 8, 16, 32 or 64
-#define SAMPLE_RESOLUTION 16                // 8, 10, 12 or 16 
+#define SAMPLE_RESOLUTION 12                // 8, 10, 12 or 16 
 
 
 
@@ -199,58 +199,6 @@ void printBuffer(uint16_t *buffer, size_t start, size_t end) {
   }
 }
 
-void print2Buffer(uint16_t *buffer1,uint16_t *buffer2, size_t start, size_t end) {
-  size_t i;
-  if (VERBOSE) {
-    for (i = start; i <= end; i++) { 
-      Serial.print(buffer1[i]); 
-      Serial.print(","); 
-      Serial.println(buffer2[i]);}
-  } else if (BINARY) {
-    for (i = start; i <= end; i++) {
-      byte* byteData1 = (byte*) buffer1[i];
-      byte* byteData2 = (byte*) buffer2[i];
-      byte buf[5] = {byteData1[0],byteData1[1],byteData2[0],byteData2[1],'\n'};
-      Serial.write(buf,5);
-    }
-  } else {
-    for (i = start; i <= end; i++) {
-      serial16Print((buffer1[i]));
-      Serial.print(",");
-      serial16Print((buffer2[i]));
-      Serial.println(",");
-    }
-  }
-}
-
-// CONVERT FLOAT TO HEX AND SEND OVER SERIAL PORT
-void serialFloatPrint(float f) {
-  byte * b = (byte *) &f;
-  for(int i=3; i>=0; i--) {
-    
-    byte b1 = (b[i] >> 4) & 0x0f;
-    byte b2 = (b[i] & 0x0f);
-    
-    char c1 = (b1 < 10) ? ('0' + b1) : 'A' + b1 - 10;
-    char c2 = (b2 < 10) ? ('0' + b2) : 'A' + b2 - 10;
-    
-    Serial.print(c1);
-    Serial.print(c2);
-  }
-}
-
-// CONVERT Byte TO HEX AND SEND OVER SERIAL PORT
-void serialBytePrint(byte b) {
-  byte b1 = (b >> 4) & 0x0f;
-  byte b2 = (b & 0x0f);
-
-  char c1 = (b1 < 10) ? ('0' + b1) : 'A' + b1 - 10;
-  char c2 = (b2 < 10) ? ('0' + b2) : 'A' + b2 - 10;
-
-  Serial.print(c1);
-  Serial.print(c2);
-}
-
 // CONVERT 16BITS TO HEX AND SEND OVER SERIAL PORT
 void serial16Print(uint16_t u) {
   byte * b = (byte *) &u;
@@ -267,22 +215,6 @@ void serial16Print(uint16_t u) {
   }
 }
 
-// CONVERT Long TO HEX AND SEND OVER SERIAL PORT
-void serialLongPrint(unsigned long l) {
-  byte * b = (byte *) &l;
-  for(int i=3; i>=0; i--) {
-    
-    byte b1 = (b[i] >> 4) & 0x0f;
-    byte b2 = (b[i] & 0x0f);
-    
-    char c1 = (b1 < 10) ? ('0' + b1) : 'A' + b1 - 10;
-    char c2 = (b2 < 10) ? ('0' + b2) : 'A' + b2 - 10;
-    
-    Serial.print(c1);
-    Serial.print(c2);
-  }
-}
-// Debug ===========================================================
 
 typedef struct  __attribute__((packed, aligned(4))) {
   uint32_t SADDR;
@@ -297,13 +229,3 @@ typedef struct  __attribute__((packed, aligned(4))) {
   uint16_t CSR;
   uint16_t BITER;
 } TCD_DEBUG;
-
-void dumpDMA_TCD(const char *psz, DMABaseClass *dmabc)
-{
-  Serial.printf("%s %08x %08x:", psz, (uint32_t)dmabc, (uint32_t)dmabc->TCD);
-  TCD_DEBUG *tcd = (TCD_DEBUG*)dmabc->TCD;
-  Serial.printf("%08x %04x %04x %08x %08x ", tcd->SADDR, tcd->SOFF, tcd->ATTR, tcd->NBYTES, tcd->SLAST);
-  Serial.printf("%08x %04x %04x %08x %04x %04x\n", tcd->DADDR, tcd->DOFF, tcd->CITER, tcd->DLASTSGA,
-                tcd->CSR, tcd->BITER);
-
-}
