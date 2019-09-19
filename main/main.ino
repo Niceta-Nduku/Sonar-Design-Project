@@ -8,7 +8,7 @@ unsigned long func_timer; // <<<<<<<<<<< Time execution of different functions
 bool          STREAM  = false;
 bool          VERBOSE = true;
 bool          BINARY = true;
-
+int           TRANSMIT = 0;
 
 //ADC & DMA Config
 ADC *adc = new ADC(); //adc object
@@ -28,7 +28,8 @@ ADC_REFERENCE               Vref     = ADC_REFERENCE::REF_3V3;
 ADC_SAMPLING_SPEED    samp_speed     = ADC_SAMPLING_SPEED::VERY_HIGH_SPEED;
 ADC_CONVERSION_SPEED  conv_speed     = ADC_CONVERSION_SPEED::VERY_HIGH_SPEED;
 
-//test chirp
+//==========Button Declaration ========
+
 
 // Processing Buffer
 uint16_t processed_buf[BUFFER_SIZE]; // processed data buffer
@@ -37,7 +38,10 @@ void setup() { // =====================================================
   analogWriteResolution(12);
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(readPin0, INPUT); // single ended
+  pinMode(transmit_LED, OUTPUT);
+  pinMode(start_receive, INPUT_PULLDOWN);
 
+  TRANSMIT = digitalRead(start_receive);
   // Setup monitor pin
   pinMode(ledPin, OUTPUT);
   digitalWriteFast(ledPin, LOW); // LED low, setup start
@@ -54,6 +58,7 @@ void setup() { // =====================================================
   
   // LED on, setup complete
   digitalWriteFast(ledPin, HIGH);
+  
 
 } // setup =========================================================
 
@@ -66,13 +71,15 @@ boolean   chunk3_sent = false;
 
 
 void loop() { // ===================================================
-
-  //======Sending Array
-  for (int i = 0; i < 19532;i++){
-    analogWrite(A21,chirp_pulse[i]);
+  
+  while(TRANSMIT == 0){
+    
+    TRANSMIT = digitalRead(start_receive);
+    digitalWrite(transmit_LED, LOW);
+    delay(200);
   }
-
-  //======Receiving array
+  
+  digitalWriteFast(transmit_LED, HIGH);
   
   // Keep track of loop time
   currentTime = micros();
@@ -90,6 +97,13 @@ void loop() { // ===================================================
           
           setup_ADC_single();
           start_ADC();
+         
+          //======Sending Array
+  
+          for (int i = 0; i < 19532;i++){
+            analogWrite(A21,chirp_pulse[i]);
+          }
+          
           wait_ADC_single();
           stop_ADC();
           adc->printError();
