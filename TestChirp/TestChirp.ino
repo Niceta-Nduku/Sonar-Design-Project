@@ -14,4 +14,5 @@ void loop() {
   for (int i = 0; i < 19532;i++){
     analogWrite(A21,chirp_pulse[i]);
   }
+  delay(500);
 }
