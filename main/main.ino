@@ -72,14 +72,14 @@ boolean   chunk3_sent = false;
 
 void loop() { // ===================================================
   
-  while(TRANSMIT == 0){
-    
-    TRANSMIT = digitalRead(start_receive);
-    digitalWrite(transmit_LED, LOW);
-    delay(200);
-  }
-  
-  digitalWriteFast(transmit_LED, HIGH);
+//  while(TRANSMIT == 0){
+//    
+//    TRANSMIT = digitalRead(start_receive);
+//    digitalWrite(transmit_LED, LOW);
+//    delay(200);
+//  }
+//  
+//  digitalWriteFast(transmit_LED, HIGH);
   
   // Keep track of loop time
   currentTime = micros();
@@ -91,19 +91,15 @@ void loop() { // ===================================================
     lastInAvail = currentTime;
     if (Serial.available()) {
       inByte=Serial.read();
-      
+
       if (inByte == 'c') { // single block conversion
+
           if ((aorb_busy == 1) || (aorb_busy == 2)) { stop_ADC(); }
-          
           setup_ADC_single();
-          start_ADC();
-         
-          //======Sending Array
-  
           for (int i = 0; i < 19532;i++){
             analogWrite(A21,chirp_pulse[i]);
           }
-         
+          start_ADC();
           wait_ADC_single();
           stop_ADC();
           adc->printError();
