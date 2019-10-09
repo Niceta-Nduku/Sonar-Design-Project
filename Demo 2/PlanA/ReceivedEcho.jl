@@ -1,19 +1,20 @@
+#Libraries to import
 using SerialPorts
 using PyPlot
 using FFTW
 
+#=================================================================
+Creating a matched filter
+=================================================================#
+
 list_serialports() # show available ports
 
-receive_one = []
-receive_two = []
+array_one = []
+array_two = []
 
-b = ""
-
-
-ser = SerialPort("COM3:", 9600)
+ser = SerialPort("/dev/ttyACM2", 9600)
 
 readavailable(ser)
-
 #transmit and receive
 write(ser, "c")
 
@@ -24,7 +25,10 @@ end
 sleep(0.05)
 readavailable(ser) #removes the conversion complete line
 
-# Get the first buffer
+#=================================================================#
+
+b = ""
+readavailable(ser)
 
 write(ser, "a") # Print DMA buffer
 while bytesavailable(ser) < 1
@@ -43,9 +47,12 @@ while true
 
 end
 
-receive_one=split(b, ("\r\n"))
+array_one=b
+
+#=================================================================#
 
 b = "" #clear b
+readavailable(ser)
 
 #second buffer
 write(ser, "b") # Print DMA buffer
@@ -67,47 +74,47 @@ end
 
 close(ser)
 
-receive_two=split(b, ("\r\n"))
+array_two=b
 
 
-println(length(receive_one))
-println(length(receive_two))
+println(length(array_one))
+println(length(array_two))
 
-rc1 = []
+#=================================================================#
+ac1 = []
 i=1
 
-while (i<length(receive_one)-1)
-    if length(receive_one[i])>5
-        push!(rc1,parse(Int,(receive_one[i][1:4])))
-        push!(rc1,parse(Int,(receive_one[i][5:8])))
-    else
-        push!(rc1,parse(Int,(receive_one[i])))
-    end
+while (i<length(array_one)-1)
+    push!(ac,parse(Int,(array_one[i])))
     i+=1
 end
 
-echo_one = (3.3/4096).*rc1
+match_one = (3.3/4096).*ac1
 
 figure()
-plot(echo_one)
+plot(match_one)
 
-rc2 = []
+#=================================================================#
+ac2 = []
 i=1
 
-while (i<length(receive_two)-1)
-    if length(receive_two[i])>5
-        push!(rc2,parse(Int,(receive_two[i][1:4])))
-        push!(rc2,parse(Int,(receive_two[i][5:8])))
-    else
-        push!(rc2,parse(Int,(receive_two[i])))
-    end
+while (i<length(array_two)-1)
+    push!(ac2,parse(Int,(array_two[i])))
     i+=1
 end
 
-echo_2 = (3.3/4096).*rc2
+match_two = (3.3/4096).*ac2
 
 figure()
-plot(echo_2)
+plot(match_two)
 
-EchoOne = (3.3/4096).*receive_one
-EchoTwo= (3.3/4096).*receive_two
+FilterOne = (3.3/4096).*match_one
+FilterTwo= (3.3/4096).*match_two
+
+file = open("dummy1.txt", "w")
+write(file,array_one);
+close(file);
+
+file = open("dummy2.txt", "w")
+write(file,array_two);
+close(file);

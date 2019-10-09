@@ -2,16 +2,13 @@ using SerialPorts
 using PyPlot
 using FFTW
 
+
 #=================================================================
 Receiving prcess
 =================================================================#
-list_serialports() # show available ports
 
 receive_one = []
 receive_two = []
-
-b = ""
-
 
 # ser = SerialPort("COM3:", 9600)
 ser = SerialPort("/dev/ttyACM0", 9600)
@@ -28,7 +25,10 @@ end
 sleep(0.05)
 readavailable(ser) #removes the conversion complete line
 
+#=================================================================#
 # Get the first buffer
+b = ""
+readavailable(ser)
 
 write(ser, "a") # Print DMA buffer
 while bytesavailable(ser) < 1
@@ -49,9 +49,11 @@ end
 
 receive_one=split(b, ("\r\n"))
 
-b = "" #clear b
+#=================================================================#
+# Get the second buffer
+b = ""
+readavailable(ser)
 
-#second buffer
 write(ser, "b") # Print DMA buffer
 while bytesavailable(ser) < 1
     continue # wait for a response
@@ -82,12 +84,7 @@ rc1 = []
 i=1
 
 while (i<length(receive_one)-1)
-    if length(receive_one[i])>5
-        push!(rc1,parse(Int,(receive_one[i][1:4])))
-        push!(rc1,parse(Int,(receive_one[i][5:8])))
-    else
-        push!(rc1,parse(Int,(receive_one[i])))
-    end
+    push!(rc1,parse(Int,(receive_one[i])))
     i+=1
 end
 
@@ -100,12 +97,7 @@ rc2 = []
 i=1
 
 while (i<length(receive_two)-1)
-    if length(receive_two[i])>5
-        push!(rc2,parse(Int,(receive_two[i][1:4])))
-        push!(rc2,parse(Int,(receive_two[i][5:8])))
-    else
-        push!(rc2,parse(Int,(receive_two[i])))
-    end
+    push!(rc2,parse(Int,(receive_two[i])))
     i+=1
 end
 

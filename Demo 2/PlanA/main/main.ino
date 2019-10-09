@@ -17,6 +17,7 @@ DMAChannel dma1;
 DMAMEM static uint16_t buf_a[BUFFER_SIZE]; // buffer a
 DMAMEM static uint16_t buf_b[BUFFER_SIZE]; // buffer b
 volatile uint8_t          aorb_busy  = 0;      //
+volatile uint8_t          borb_busy  = 0;      //
 volatile uint8_t          a_full     = 0;      //
 volatile uint8_t          b_full     = 0;      //
 uint32_t                    freq     = SAMPLE_RATE;
@@ -67,15 +68,6 @@ long         inNumber = -1;
 
 void loop() { // ===================================================
   
-//  while(TRANSMIT == 0){
-//    
-//    TRANSMIT = digitalRead(start_receive);
-//    digitalWrite(transmit_LED, LOW);
-//    delay(200);
-//  }
-//  
-//  digitalWriteFast(transmit_LED, HIGH);
-  
   // Keep track of loop time
   currentTime = micros();
   // Commands:
@@ -93,15 +85,20 @@ void loop() { // ===================================================
           { 
             stop_ADC();
           }
+
           
-          setup_ADC_single();
+          setup_ADC_single0();
+          setup_ADC_single1();
+
           
+
           for (int i = 0; i < 19532;i++){
             analogWrite(A21,chirp_pulse[i]);
-          }   
-               
+          }               
+
           start_ADC();
-          wait_ADC_single();
+          wait_ADC_single0();
+          wait_ADC_single1();
           stop_ADC();
           adc->printError();
           adc->resetError();
@@ -127,47 +124,36 @@ void loop() { // ===================================================
 
 
 // ADC
-void setup_ADC_single(void) {
+void setup_ADC_single0(void) {
   // clear buffers
   memset((void*)buf_a, 0, sizeof(buf_a));
-  memset((void*)buf_b, 0, sizeof(buf_b));
   
-  // Initialize the ADC0 & ADC1
+  // Initialize the ADC
+  
   if (sgain >1) { 
-    adc->enablePGA(sgain, ADC_0);
-    adc->enablePGA(sgain, ADC_1); 
-  } 
+    adc->enablePGA(sgain, ADC_0); 
+    }  
   else { 
     adc->disablePGA(ADC_0);
-    adc->disablePGA(ADC_1); 
-  } 
-          
+    }    
+         
   adc->setReference(Vref, ADC_0);
-  adc->setReference(Vref, ADC_1);
   
   adc->setAveraging(aver); 
   adc->setResolution(res); 
   
   if (((Vref == ADC_REFERENCE::REF_3V3) && (Vmax > 3.29)) || ((Vref == ADC_REFERENCE::REF_1V2) && (Vmax > 1.19))) { 
     adc->disableCompare(ADC_0);
-    adc->disableCompare(ADC_1);
   } 
   else if (Vref == ADC_REFERENCE::REF_3V3) {
     adc->enableCompare(Vmax/3.3*adc->getMaxValue(ADC_0), 0, ADC_0);
-    adc->enableCompare(Vmax/3.3*adc->getMaxValue(ADC_1), 0, ADC_1);
   } 
   else if (Vref == ADC_REFERENCE::REF_1V2) {
-    adc->enableCompare(Vmax/1.2*adc->getMaxValue(ADC_0), 0, ADC_0);  
-    adc->enableCompare(Vmax/1.2*adc->getMaxValue(ADC_1), 0, ADC_1);  
+    adc->enableCompare(Vmax/1.2*adc->getMaxValue(ADC_0), 0, ADC_0);    
   }
-  
+  //adc->enableCompareRange(1.0*adc->getMaxValue(ADC_1)/3.3, 2.0*adc->getMaxValue(ADC_1)/3.3, 1, 1, ADC_1); // ready if value lies out of [1.0,2.0] V
   adc->setConversionSpeed(conv_speed, ADC_0);
-  adc->setConversionSpeed(conv_speed, ADC_1);
-  
-  adc->setSamplingSpeed(samp_speed, ADC_0);
-  adc->setSamplingSpeed(samp_speed, ADC_1);     
-
-  
+  adc->setSamplingSpeed(samp_speed, ADC_0);      
 
   // Initialize dma
   dma0.source((volatile uint16_t&)ADC0_RA);
@@ -175,7 +161,40 @@ void setup_ADC_single(void) {
   dma0.triggerAtHardwareEvent(DMAMUX_SOURCE_ADC0);
   dma0.interruptAtCompletion();
   dma0.attachInterrupt(&dma0_isr_single);
+}
 
+void setup_ADC_single1(void) {
+  // clear buffers
+  memset((void*)buf_b, 0, sizeof(buf_b));
+  
+  // Initialize the ADC
+  
+  if (sgain >1) { 
+    adc->enablePGA(sgain, ADC_1); 
+    }  
+  else { 
+    adc->disablePGA(ADC_1);
+    }    
+         
+  adc->setReference(Vref, ADC_1);
+  
+  adc->setAveraging(aver,ADC_1); 
+  adc->setResolution(res,ADC_1); 
+  
+  if (((Vref == ADC_REFERENCE::REF_3V3) && (Vmax > 3.29)) || ((Vref == ADC_REFERENCE::REF_1V2) && (Vmax > 1.19))) { 
+    adc->disableCompare(ADC_1);
+  } 
+  else if (Vref == ADC_REFERENCE::REF_3V3) {
+    adc->enableCompare(Vmax/3.3*adc->getMaxValue(ADC_1), 0, ADC_1);
+  } 
+  else if (Vref == ADC_REFERENCE::REF_1V2) {
+    adc->enableCompare(Vmax/1.2*adc->getMaxValue(ADC_1), 0, ADC_1);    
+  }
+  //adc->enableCompareRange(1.0*adc->getMaxValue(ADC_1)/3.3, 2.0*adc->getMaxValue(ADC_1)/3.3, 1, 1, ADC_1); // ready if value lies out of [1.0,2.0] V
+  adc->setConversionSpeed(conv_speed, ADC_1);
+  adc->setSamplingSpeed(samp_speed, ADC_1);      
+
+  // Initialize dma
   dma1.source((volatile uint16_t&)ADC1_RA);
   dma1.destinationBuffer(buf_b, sizeof(buf_b));
   dma1.triggerAtHardwareEvent(DMAMUX_SOURCE_ADC1);
@@ -183,52 +202,76 @@ void setup_ADC_single(void) {
   dma1.attachInterrupt(&dma1_isr_single);
 }
 
-void start_ADC(void) {
+void start_ADC() {
     // Start adc
     aorb_busy  = 1;
-    
     a_full    = 0;
+    
+    borb_busy  = 1;
     b_full    = 0;
     
     adc->adc0->startSingleRead(readPin0);
     adc->adc1->startSingleRead(readPin1);
+
+    
+    // frequency, hardware trigger and dma
+    adc->adc1->startPDB(freq); // set ADC_SC2_ADTRG
+    adc->enableDMA(ADC_1); // set ADC_SC2_DMAEN
+    
+    dma1.enable();
     
     // frequency, hardware trigger and dma
     adc->adc0->startPDB(freq); // set ADC_SC2_ADTRG
-    adc->adc1->startPDB(freq);
-    
     adc->enableDMA(ADC_0); // set ADC_SC2_DMAEN
-    adc->enableDMA(ADC_1);
-    
-    dma0.enable();
-    dma1.enable();
+    dma0.enable(); 
+
 }
+
 
 void stop_ADC(void) {
     PDB0_CH0C1 = 0; // diasble ADC0 pre triggers. Need to figure this out for ADC1
         
     dma0.disable();
-    dma1.disable();
     
     adc->disableDMA(ADC_0);
-    adc->disableDMA(ADC_1);
     
     adc->adc0->stopPDB();
+   
+    aorb_busy = 0;
+
+    PDB0_CH1C1 = 0;
+
+    dma1.disable();
+    
+    adc->disableDMA(ADC_1);
+    
     adc->adc1->stopPDB();
     
-    aorb_busy = 0;
+    borb_busy = 0;
 }
 
-void wait_ADC_single(void) {
+void wait_ADC_single0(void) {
   
   uint32_t   end_time = micros();
   uint32_t start_time = micros();
-  
-  while (!a_full && !b_full) { //Niceta made a change here, could be a potential issue
+  while (!a_full) {
     end_time = micros();
     if ((end_time - start_time) > 1100000) {
       Serial.printf("Timeout %d %d\n", a_full, aorb_busy);
-      Serial.printf("Timeout %d %d\n", b_full, aorb_busy);
+      break;
+    }
+  }
+  Serial.printf("Conversion complete in %d us\n", end_time-start_time);
+}
+
+void wait_ADC_single1(void) {
+  
+  uint32_t   end_time = micros();
+  uint32_t start_time = micros();
+  while (!b_full) {
+    end_time = micros();
+    if ((end_time - start_time) > 1100000) {
+      Serial.printf("Timeout %d %d\n", b_full, borb_busy);
       break;
     }
   }
@@ -243,7 +286,7 @@ void dma0_isr_single(void) {
 }
 
 void dma1_isr_single(void) {
-  aorb_busy = 0;
+  borb_busy = 0;
      b_full = 1;
   dma1.clearInterrupt(); // takes more than 0.5 micro seconds
   dma1.clearComplete(); // takes about ? micro seconds

@@ -19,17 +19,22 @@
 #define DEBUG                 false
 
 //Function definitions
-void setup_ADC_single(void);
+void setup_ADC_single0(void);
 void start_ADC(void);
-void wait_ADC_single(void);
+void wait_ADC_single0(void);
 void stop_ADC(void);
 void dma0_isr_single(void);
+
+void setup_ADC_single1(void);
+void wait_ADC_single1(void);
 void dma1_isr_single(void);
+
 void printBuffer(uint16_t *buffer, size_t start, size_t end);
 void serial16Print(uint16_t u);
 
 const int readPin0 = A0;
 const int readPin1 = A17;
+
 const int ledPin = LED_BUILTIN;
 const int start_receive =  28;
 const int transmit_LED = 27;

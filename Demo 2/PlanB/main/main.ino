@@ -136,16 +136,28 @@ void loop() { // ===================================================
 void setup_ADC_single(void) {
   // clear buffers
   memset((void*)buf_a, 0, sizeof(buf_a));
+  
   // Initialize the ADC
-  if (sgain >1) { adc->enablePGA(sgain, ADC_0); }  else { adc->disablePGA(ADC_0); }         
+  
+  if (sgain >1) { 
+    adc->enablePGA(sgain, ADC_0); 
+    }  
+  else { 
+    adc->disablePGA(ADC_0);
+    }    
+         
   adc->setReference(Vref, ADC_0);
+  
   adc->setAveraging(aver); 
   adc->setResolution(res); 
+  
   if (((Vref == ADC_REFERENCE::REF_3V3) && (Vmax > 3.29)) || ((Vref == ADC_REFERENCE::REF_1V2) && (Vmax > 1.19))) { 
     adc->disableCompare(ADC_0);
-  } else if (Vref == ADC_REFERENCE::REF_3V3) {
+  } 
+  else if (Vref == ADC_REFERENCE::REF_3V3) {
     adc->enableCompare(Vmax/3.3*adc->getMaxValue(ADC_0), 0, ADC_0);
-  } else if (Vref == ADC_REFERENCE::REF_1V2) {
+  } 
+  else if (Vref == ADC_REFERENCE::REF_1V2) {
     adc->enableCompare(Vmax/1.2*adc->getMaxValue(ADC_0), 0, ADC_0);    
   }
   //adc->enableCompareRange(1.0*adc->getMaxValue(ADC_1)/3.3, 2.0*adc->getMaxValue(ADC_1)/3.3, 1, 1, ADC_1); // ready if value lies out of [1.0,2.0] V
@@ -166,6 +178,7 @@ void start_ADC(int pin) {
     aorb_busy  = 1;
     a_full    = 0;
     b_full    = 0;
+    
     adc->adc0->startSingleRead(pin);
     // frequency, hardware trigger and dma
     adc->adc0->startPDB(freq); // set ADC_SC2_ADTRG
