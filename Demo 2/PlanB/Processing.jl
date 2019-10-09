@@ -13,8 +13,7 @@ receive_two = []
 b = ""
 
 
-# ser = SerialPort("COM3:", 9600)
-ser = SerialPort("/dev/ttyACM0", 9600)
+ser = SerialPort("COM3:", 9600)
 
 readavailable(ser)
 
