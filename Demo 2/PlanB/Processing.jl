@@ -3,85 +3,94 @@ using PyPlot
 using FFTW
 
 
-list_serialports()
-array_one = []
-array_two = []
-
-b = ""
+# list_serialports()
 
 
 # ser = SerialPort("COM3:", 9600)
 ser = SerialPort("/dev/ttyACM2", 9600)
 
-#=================================================================
-Creating a matched filter
-=================================================================#
+# #=================================================================
+# Creating a matched filter
+# =================================================================#
+#
+# readavailable(ser)
+#
+# array_one = []
+# array_two = []
+#
+# b = ""
+# # Start a conversion
+# # Read from first transducer
+# #=================================================================#
+# write(ser, "c")
+#
+# while bytesavailable(ser) < 1
+#     continue
+# end
+# sleep(0.05)
+# r = readavailable(ser)
+#
+# # Get the values
+# write(ser, "p") # Print DMA buffer
+# while bytesavailable(ser) < 1
+#     continue # wait for a response
+# end
+#
+# while true
+#     if bytesavailable(ser) < 2
+#         sleep(0.005) # Wait and check again
+#         if bytesavailable(ser) < 1
+#             break
+#         end
+#     end
+#     b = string(b, readavailable(ser))
+#
+# end
+#
+# array_one=split(b, ("\r\n"))
+# # Read from second transducer
+# #=================================================================#
+# readavailable(ser)
+# b = ""
+#
+# write(ser, "d")
+#
+# while bytesavailable(ser) < 1
+#     continue
+# end
+# sleep(0.05)
+# r = readavailable(ser)
+#
+# # Get the values
+# write(ser, "p") # Print DMA buffer
+# while bytesavailable(ser) < 1
+#     continue # wait for a response
+# end
+#
+# while true
+#     if bytesavailable(ser) < 2
+#         sleep(0.005) # Wait and check again
+#         if bytesavailable(ser) < 1
+#             break
+#         end
+#     end
+#     b = string(b, readavailable(ser))
+#
+# end
+#
+# close(ser)
+#
+# array_two=split(b, ("\r\n"))
+# #=================================================================#
+# println(length(array_one)) # first transdcer length
+# println(length(array_two)) # second transdcer length
+file = open("FilterOne.txt", "w")
+write(file,array_one)
+close(file);
 
-readavailable(ser)
-# Start a conversion
-#=================================================================#
-write(ser, "c")
-
-while bytesavailable(ser) < 1
-    continue
-end
-sleep(0.05)
-r = readavailable(ser)
-
-# Get the values
-write(ser, "p") # Print DMA buffer
-while bytesavailable(ser) < 1
-    continue # wait for a response
-end
-
-while true
-    if bytesavailable(ser) < 2
-        sleep(0.005) # Wait and check again
-        if bytesavailable(ser) < 1
-            break
-        end
-    end
-    b = string(b, readavailable(ser))
-
-end
-
-array_one=split(b, ("\r\n"))
-#=================================================================#
-readavailable(ser)
-b = ""
-
-write(ser, "d")
-
-while bytesavailable(ser) < 1
-    continue
-end
-sleep(0.05)
-r = readavailable(ser)
-
-# Get the values
-write(ser, "p") # Print DMA buffer
-while bytesavailable(ser) < 1
-    continue # wait for a response
-end
-
-while true
-    if bytesavailable(ser) < 2
-        sleep(0.005) # Wait and check again
-        if bytesavailable(ser) < 1
-            break
-        end
-    end
-    b = string(b, readavailable(ser))
-
-end
-
-close(ser)
-
-array_two=split(b, ("\r\n"))
-#=================================================================#
-println(length(array_one))
-println(length(array_two))
-
+file = open("FilterTwo.txt", "w")
+write(file, array_two)
+close(file);
 ac1 = []
 i=1
 
@@ -112,7 +121,10 @@ plot(match_two)
 
 FilterOne = (3.3/4096).*match_one
 FilterTwo= (3.3/4096).*match_two
+
+
 #=================================================================
+When we do the loop it will start here!!
 Receiving process
 =================================================================#
 list_serialports() # show available ports
@@ -155,6 +167,7 @@ end
 
 receive_one=split(b, ("\r\n"))
 #=================================================================#
+b = ""
 write(ser, "d")
 
 while bytesavailable(ser) < 1
@@ -177,7 +190,6 @@ while true
         end
     end
     b = string(b, readavailable(ser))
-
 end
 
 close(ser)
@@ -214,7 +226,7 @@ figure("Unprocessed Echo two")
 plot(echo_2)
 
 EchoOne = (3.3/4096).*receive_one
-EchoTwo= (3.3/4096).*receive_two
+EchoTwo = (3.3/4096).*receive_two
 
 #end of receiving
 
