@@ -2,86 +2,46 @@ using SerialPorts
 using PyPlot
 using FFTW
 
-#=================================================================
-Empty array
-=================================================================#
-
-dummy_one = open("dummy1.txt") do file
-    read(file, String)
-end
-
-dummy_two = open("dummy2.txt") do file
-    read(file, String)
-end
-
-dummy_array_one=split(dummy_one, (", "))
-
-dummy_array_two = split(dummy_two, (", "))
-
-#=================================================================#
-
-da1 = []
-da2 = []
-
-for i in dummy_array_one
-    if (i == "")
-        continue
-    end
-    push!(da1,parse(Int,i))
-end
-
-ma2 = []
-
-for i in dummy_array_two
-    if (i == "")
-        continue
-    end
-    push!(da2,parse(Int,i))
-end
-
-DummyOne = (3.3/4096).*da1
-DummyTwo = (3.3/4096).*da2
-#=================================================================
-Load matched filter
-=================================================================#
-matched_one = open("Filter1.txt") do file
-    read(file, String)
-end
-
-matched_two = open("Filter2.txt") do file
-    read(file, String)
-end
-
-array_one=split(matched_one, (", "))
-
-array_two = split(matched_two, (", "))
-
-#=================================================================#
-ma1 = []
-ma2 = []
-
-for i in array_one
-    if (i == "")
-        continue
-    end
-    push!(ma1,parse(Int,i))
-end
-
-for i in array_two
-    if (i == "")
-        continue
-    end
-    push!(ma2,parse(Int,i))
-end
-
-MatchOne = (3.3/4096).*ma1
-MatchTwo = (3.3/4096).*ma2
-
-for j = 1:length(MatchOne)
-    MatchOne[j]=MatchOne[j]-DummyOne[j]
-    MatchTwo[j]=MatchTwo[j]-DummyTwo[j]
-end
-
+# #=================================================================
+# Empty array
+# might not use it
+# =================================================================#
+#
+# dummy_one = open("dummy1.txt") do file
+#     read(file, String)
+# end
+#
+# dummy_two = open("dummy2.txt") do file
+#     read(file, String)
+# end
+#
+# dummy_array_one=split(dummy_one, (", "))
+#
+# dummy_array_two = split(dummy_two, (", "))
+#
+# #=================================================================#
+#
+# da1 = []
+# da2 = []
+#
+# for i in dummy_array_one
+#     if (i == "")
+#         continue
+#     end
+#     push!(da1,parse(Int,i))
+# end
+#
+# ma2 = []
+#
+# for i in dummy_array_two
+#     if (i == "")
+#         continue
+#     end
+#     push!(da2,parse(Int,i))
+# end
+#
+# DummyOne = (3.3/4096).*da1
+# DummyTwo = (3.3/4096).*da2
 #=================================================================
  Processing constants
 =================================================================#
@@ -92,7 +52,7 @@ r_max = 12;        # Maximum range in metres to which to simulate.
 t_max = 2*r_max/c;
 
 t = collect(0:dt:t_max);
-print(length(t))
+println(length(t))
 
 r = c*t/2;
 
@@ -101,6 +61,7 @@ B = 2000;         # Chirp bandwidth
 T = 6E-3;         # Chirp pulse length
 K = B/T;          # Chirp rate
 N = length(t)
+
 #=================================================================#
 # BPF
 
@@ -128,19 +89,81 @@ f = ω/2*pi
 
 ω0 = f0*2*pi
 
-H = rect((ω.-ω0)/(2*pi*B))+rect((ω.-(ω0.- 2*pi/δt))/(2*pi*B))
-
-# figure()
-# cla()
-# plot(f,H);
+H = rect((ω.-ω0)/(2*pi*1000))+rect((ω.-(ω0.- 2*pi/δt))/(2*pi*1000))
 
 #=================================================================
-Loop
+Match filter option 1
+=================================================================#
+# matched_one = open("Filter1.txt") do file
+#     read(file, String)
+# end
+#
+# matched_two = open("Filter2.txt") do file
+#     read(file, String)
+# end
+#
+# array_one=split(matched_one, (", "))
+#
+# array_two = split(matched_two, (", "))
+#
+# #=================================================================#
+# ma1 = []
+# ma2 = []
+#
+# for i in array_one
+#     if (i == "")
+#         continue
+#     end
+#     push!(ma1,parse(Int,i))
+# end
+#
+# for i in array_two
+#     if (i == "")
+#         continue
+#     end
+#     push!(ma2,parse(Int,i))
+# end
+#
+# MatchOne = (3.3/4096).*ma1
+# MatchTwo = (3.3/4096).*ma2
+#
+# for j = 1:length(MatchOne)
+#     MatchOne[j]=MatchOne[j]-DummyOne[j]
+#     MatchTwo[j]=MatchTwo[j]-DummyTwo[j]
+# end
+
+#=================================================================
+Match Filter option 2
+=================================================================#
+rect(t) = (abs.(t) .<= 0.5)*1.0
+td = 0.6*T;   # Chirp delay
+v_tx = cos.( 2*pi*(f0*(t .- td) + 0.5*K*(t .- td).^2) ) .* rect.((t .-td)/T);
+
+v_tx = v_tx[1:30000]
+println(length(v_tx));
+
+MatchOne = v_tx
+MatchTwo = v_tx
+
+#=================================================================#
+# add extra values
+for i = 0:4985
+    push!(MatchOne,MatchOne[29999])
+    push!(MatchTwo,MatchTwo[29999])
+end
+
+figure("Expected Echo")
+title("Expected Echo")
+subplot(2,1,1)
+plot(t,MatchOne)
+subplot(2,1,2)
+plot(t,MatchTwo) #query
+#=================================================================
+Begin Loop
 =================================================================#
 
 ion()
 figure()
-
 b = ""
 i=1
 list = list_serialports()
@@ -148,7 +171,7 @@ list = list_serialports()
 while true
 
     #=================================================================
-    Receiving prcess
+    Receiving process
     =================================================================#
 
     receive_one = []
@@ -170,7 +193,6 @@ while true
     readavailable(ser) #removes the conversion complete line
 
     #=================================================================#
-    # Get the first buffer
     readavailable(ser)
 
     write(ser, "a") # Print DMA buffer
@@ -193,7 +215,7 @@ while true
     receive_one=split(b, ("\r\n"))
 
     #=================================================================#
-    # Get the second buffer
+    global b=""
     readavailable(ser)
 
     write(ser, "b") # Print DMA buffer
@@ -216,15 +238,13 @@ while true
     receive_two=split(b, ("\r\n"))
     #=================================================================#
     rc1 = []
+    rc2 = []
 
     while (i<length(receive_one))
         push!(rc1,parse(Int,(receive_one[i])))
         global i+=1
     end
 
-    echo_one = (3.3/4096).*rc1
-
-    rc2 = []
     global i=1
 
     while (i<length(receive_two))
@@ -232,38 +252,35 @@ while true
         global i+=1
     end
 
+    echo_one = (3.3/4096).*rc1
     echo_2 = (3.3/4096).*rc2
-
 
     for j = 1:length(echo_one)
         echo_one[j]=echo_one[j]-DummyOne[j]
         echo_2[j]=echo_2[j]-DummyTwo[j]
     end
 
-    # figure("Unprocessed Echo one")
     # title("Unprocessed Echo one")
     # cla()
     # plot(echo_one)
-    #
-    # figure("Unprocessed Echo two")
+
     # title("Unprocessed Echo two")
     # cla()
     # plot(echo_2)
-    #
-    # println(length(echo_one))
-    # println(length(echo_2))
+
+    println(length(rc2))
+    println(length(rc1))
 
     #end of receiving
     #=================================================================#
 
-    for i = length(MatchOne):34985
-        push!(MatchOne,MatchOne[29999])
-        push!(MatchTwo,MatchTwo[29999])
+    for i = 0:4985
         push!(echo_one,echo_one[29999])
         push!(echo_2,echo_2[29999])
     end
 
-    print(length(echo_2))
+    println(length(echo_2))
+    println(length(echo_2))
 
     #=================================================================
     The signals
@@ -275,14 +292,6 @@ while true
 
     v_tx2 = MatchTwo
     V_TX2 = fft(v_tx2);
-
-    #plots
-    # figure("Expected Echo")
-    # title("Expected Echo")
-    # subplot(2,1,1)
-    # plot(r,v_tx1)
-    # subplot(2,1,2)
-    # plot(r,v_tx2) #query
 
     # received echos
     v_rx1 = echo_one
@@ -310,7 +319,6 @@ while true
     #=================================================================
     Analytic Signal
     =================================================================#
-
 
     V_ANAL1 = 2*V_MF1; # make a copy and double the values
 
@@ -347,10 +355,8 @@ while true
     v_bb2 = v_anal1.*exp.(-j*2*pi*f0.*t);
     V_BB2 = fft(v_bb2);
 
-
     #=================================================================
     Angle Calculation
-    this section is very wrong, it's just for understanding
     =================================================================#
     d = 0.025
     k = 0
@@ -359,26 +365,28 @@ while true
     Δψ = angle.( v_bb2 .* conj(v_bb1))
     θ = asin.((λ/(2*pi*d)).* (Δψ.+(k*2*pi)))
 
-    x = r.*cos.(θ)
-    y = r.*sin.(θ)
+    r_array = [r[2700],r[900]] #will have specific points
+    θ_array = [θ[2700],θ[900]] #will have specific points
 
-
+    x = r_array.*cos.(θ_array)
+    y = r_array.*sin.(θ_array)
 
     #=================================================================
     plots
+    need to figure out what to plot
     =================================================================#
     #plots
-    # title("Unprocessed Received Echo")
-    # subplot(3,1,1)
-    # cla()
-    # plot(r,v_rx1)
-    # subplot(5,1,2)
-    # cla()
-    # plot(r,v_rx2) #query
+    # fig1.title("Unprocessed Received Echo")
+    # fig1.subplot(2,1,1)
+    # fig1.cla()
+    # fig1.plot(r,v_rx1)
+    # fig1.subplot(2,1,2)
+    # fig1.cla()
+    # fig1.plot(r,v_rx2) #query
 
     #plots
-    # title("First Echo match filtered")
-    # cla()
+    # fig2.title("First Echo match filtered")
+    # fig2.cla()
     # subplot(4,1,3)
     # plot(r,v_mf1)
     # # subplot(2,1,2)
@@ -404,10 +412,17 @@ while true
 
     subplot(3,1,1)
     cla()
-    plot(r,abs.(v_bb1))
+    plot(v_bb1)
     subplot(3,1,2)
     cla()
-    plot(r,angle.(v_bb1)) #query
+    plot(v_bb2) #query
+
+    # title("Base band signal 2")
+    # cla()
+    # subplot(2,1,1)
+    # plot(r,abs.(v_bb2))
+    # subplot(2,1,2)
+    # plot(r,angle.(v_bb2)) #query
 
     # title("Base band signal 2")
     # cla()
@@ -420,9 +435,6 @@ while true
     subplot(3,1,3)
     cla()
     plot(x,y, ".")
-
-
-
 end
 
 
