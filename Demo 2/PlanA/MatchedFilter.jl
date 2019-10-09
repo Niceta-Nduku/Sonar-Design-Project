@@ -12,7 +12,7 @@ list_serialports() # show available ports
 array_one = []
 array_two = []
 
-ser = SerialPort("/dev/ttyACM0", 9600)
+ser = SerialPort("/dev/ttyACM1", 9600)
 
 readavailable(ser)
 #transmit and receive
