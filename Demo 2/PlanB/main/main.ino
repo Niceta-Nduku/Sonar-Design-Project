@@ -75,15 +75,6 @@ boolean   chunk3_sent = false;
 
 void loop() { // ===================================================
   
-//  while(TRANSMIT == 0){
-//    
-//    TRANSMIT = digitalRead(start_receive);
-//    digitalWrite(transmit_LED, LOW);
-//    delay(200);
-//  }
-//  
-//  digitalWriteFast(transmit_LED, HIGH);
-  
   // Keep track of loop time
   currentTime = micros();
   // Commands:
