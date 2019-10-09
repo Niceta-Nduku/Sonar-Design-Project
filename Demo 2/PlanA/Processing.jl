@@ -42,6 +42,7 @@ using FFTW
 #
 # DummyOne = (3.3/4096).*da1
 # DummyTwo = (3.3/4096).*da2
+
 #=================================================================
  Processing constants
 =================================================================#
@@ -168,6 +169,8 @@ b = ""
 i=1
 list = list_serialports()
 
+ser = SerialPort(list[1], 9600)
+
 while true
 
     #=================================================================
@@ -178,7 +181,8 @@ while true
     receive_two = []
 
     # ser = SerialPort("COM3:", 9600)
-    ser = SerialPort(list[1], 9600)
+
+    global ser
 
     readavailable(ser)
 
