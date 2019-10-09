@@ -43,7 +43,7 @@ while true
         end
     end
 
-    b = string(b, readavailable(ser))
+    global b = string(b, readavailable(ser))
 
 end
 
@@ -68,7 +68,7 @@ while true
         end
     end
 
-    b = string(b, readavailable(ser))
+    global b = string(b, readavailable(ser))
 
 end
 
@@ -82,7 +82,7 @@ i=1
 
 while (i<length(array_one))
     push!(ac1,parse(Int,(array_one[i])))
-    i+=1
+    global i+=1
 end
 
 match_one = (3.3/4096).*ac1
@@ -96,7 +96,7 @@ i=1
 
 while (i<length(array_two))
     push!(ac2,parse(Int,(array_two[i])))
-    i+=1
+    global i+=1
 end
 
 match_two = (3.3/4096).*ac2
@@ -112,12 +112,12 @@ println(length(match_two))
 
 file = open("Filter1.txt", "w")
 for n=1:length(array_one)
-   write(file,array_one[n],",");
+   write(file,array_one[n],", ");
 end
 close(file);
 
 file = open("Filter2.txt", "w")
 for n=1:length(array_two)
-   write(file,array_two[n],",");
+   write(file,array_two[n],", ");
 end
 close(file);

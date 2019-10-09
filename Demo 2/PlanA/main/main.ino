@@ -90,13 +90,13 @@ void loop() { // ===================================================
           setup_ADC_single0();
           setup_ADC_single1();
 
-          
+          start_ADC();
 
           for (int i = 0; i < 19532;i++){
             analogWrite(A21,chirp_pulse[i]);
           }               
 
-          start_ADC();
+          
           wait_ADC_single0();
           wait_ADC_single1();
           stop_ADC();
