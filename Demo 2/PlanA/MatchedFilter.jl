@@ -112,12 +112,12 @@ println(length(match_two))
 
 file = open("Filter1.txt", "w")
 for n=1:length(array_one)
-   write(file,array_one[n],", ");
+   write(file,array_one[n],",");
 end
 close(file);
 
 file = open("Filter2.txt", "w")
 for n=1:length(array_two)
-   write(file,array_two[n],", ");
+   write(file,array_two[n],",");
 end
 close(file);

@@ -3,13 +3,52 @@ using PyPlot
 using FFTW
 
 #=================================================================
-Load matched filter
+Empty array
 =================================================================#
-matched_one = open("FilterOne.txt") do file
+
+dummy_one = open("Dummy1.txt") do file
     read(file, String)
 end
 
-matched_two = open("FilterTwo.txt") do file
+dummy_two = open("Dummy2.txt") do file
+    read(file, String)
+end
+
+dummy_array_one=split(dummy_one, (","))
+
+dummy_array_two = split(dummy_two, (","))
+
+#=================================================================#
+
+da1 = []
+da2 = []
+
+for i in dummy_array_one
+    if (i == "")
+        continue
+    end
+    push!(da1,parse(Int,i))
+end
+
+ma2 = []
+
+for i in dummy_array_two
+    if (i == "")
+        continue
+    end
+    push!(da2,parse(Int,i))
+end
+
+DummyOne = (3.3/4096).*ma1
+DummyTwo = (3.3/4096).*ma2
+#=================================================================
+Load matched filter
+=================================================================#
+matched_one = open("Filter1.txt") do file
+    read(file, String)
+end
+
+matched_two = open("Filter2.txt") do file
     read(file, String)
 end
 
@@ -19,6 +58,7 @@ array_two = split(matched_two, (","))
 
 #=================================================================#
 ma1 = []
+ma2 = []
 
 for i in array_one
     if (i == "")
@@ -26,8 +66,6 @@ for i in array_one
     end
     push!(ma1,parse(Int,i))
 end
-
-ma2 = []
 
 for i in array_two
     if (i == "")
@@ -38,6 +76,11 @@ end
 
 MatchOne = (3.3/4096).*ma1
 MatchTwo = (3.3/4096).*ma2
+
+for j = 1:length(MatchOne)
+    MatchOne[j]=MatchOne[j]-DummyOne[j]
+    MatchTwo[j]=MatchTwo[j]-DummyTwo[j]
+end
 
 #=================================================================
 Receiving prcess
@@ -127,6 +170,7 @@ end
 echo_one = (3.3/4096).*rc1
 
 figure("Unprocessed Echo one")
+title("Unprocessed Echo one")
 plot(echo_one)
 
 rc2 = []
@@ -140,10 +184,17 @@ end
 echo_2 = (3.3/4096).*rc2
 
 figure("Unprocessed Echo two")
+title("Unprocessed Echo two")
 plot(echo_2)
 
 EchoOne = (3.3/4096).*receive_one
 EchoTwo= (3.3/4096).*receive_two
+
+for j = 1:lenghth(EchoOne)
+    EchoOne[j]=EchoOne[j]-DummyOne[j]
+    EchoTwo[j]=EchoTwo[j]-DummyTwo[j]
+end
+
 
 #end of receiving
 
@@ -174,10 +225,10 @@ The signals
 =================================================================#
 
 #"expected echoes"
-v_tx1 = match[1:length(t)]
+v_tx1 = MatchOne
 V_TX1 = fft(v_tx1);
 
-v_tx2 = match[1:length(t)]
+v_tx2 = MatchTwo
 V_TX2 = fft(v_tx2);
 
 #plots
@@ -189,10 +240,10 @@ subplot(2,1,2)
 plot(r,v_tx2) #query
 
 # received echos
-v_rx1 = receive[1:length(t)]
+v_rx1 = EchoOne
 V_RX1 = (fft(v_rx1));
 
-v_rx2 = receive[1:length(t)]
+v_rx2 = EchoTwo
 V_RX2 = (fft(v_rx2));
 
 #plots
