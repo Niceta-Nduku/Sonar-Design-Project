@@ -12,7 +12,7 @@ list_serialports() # show available ports
 array_one = []
 array_two = []
 
-ser = SerialPort("/dev/ttyACM2", 9600)
+ser = SerialPort("/dev/ttyACM0", 9600)
 
 readavailable(ser)
 #transmit and receive
@@ -47,7 +47,7 @@ while true
 
 end
 
-array_one=b
+array_one=split(b, ("\r\n"))
 
 #=================================================================#
 
@@ -74,18 +74,14 @@ end
 
 close(ser)
 
-array_two=b
-
-
-println(length(array_one))
-println(length(array_two))
+array_two=split(b, ("\r\n"))
 
 #=================================================================#
 ac1 = []
 i=1
 
-while (i<length(array_one)-1)
-    push!(ac,parse(Int,(array_one[i])))
+while (i<length(array_one))
+    push!(ac1,parse(Int,(array_one[i])))
     i+=1
 end
 
@@ -98,7 +94,7 @@ plot(match_one)
 ac2 = []
 i=1
 
-while (i<length(array_two)-1)
+while (i<length(array_two))
     push!(ac2,parse(Int,(array_two[i])))
     i+=1
 end
@@ -111,10 +107,17 @@ plot(match_two)
 FilterOne = (3.3/4096).*match_one
 FilterTwo= (3.3/4096).*match_two
 
+println(length(match_one))
+println(length(match_two))
+
 file = open("dummy1.txt", "w")
-write(file,array_one);
+for n=1:length(array_one)
+   write(file,array_one[n],", ");
+end
 close(file);
 
 file = open("dummy2.txt", "w")
-write(file,array_two);
+for n=1:length(array_two)
+   write(file,array_two[n],", ");
+end
 close(file);
