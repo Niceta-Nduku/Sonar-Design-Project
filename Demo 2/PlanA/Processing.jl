@@ -2,6 +2,42 @@ using SerialPorts
 using PyPlot
 using FFTW
 
+#=================================================================
+Load matched filter
+=================================================================#
+matched_one = open("FilterOne.txt") do file
+    read(file, String)
+end
+
+matched_two = open("FilterTwo.txt") do file
+    read(file, String)
+end
+
+array_one=split(matched_one, (","))
+
+array_two = split(matched_two, (","))
+
+#=================================================================#
+ma1 = []
+
+for i in array_one
+    if (i == "")
+        continue
+    end
+    push!(ma1,parse(Int,i))
+end
+
+ma2 = []
+
+for i in array_two
+    if (i == "")
+        continue
+    end
+    push!(ma2,parse(Int,i))
+end
+
+MatchOne = (3.3/4096).*ma1
+MatchTwo = (3.3/4096).*ma2
 
 #=================================================================
 Receiving prcess
