@@ -144,22 +144,24 @@ v_tx = cos.( 2*pi*(f0*(t .- td) + 0.5*K*(t .- td).^2) ) .* rect.((t .-td)/T);
 v_tx = v_tx[1:30000]
 println(length(v_tx));
 
-MatchOne = v_tx
-MatchTwo = v_tx
-
-#=================================================================#
-# add extra values
-for i = 0:4985
-    push!(MatchOne,MatchOne[29999])
-    push!(MatchTwo,MatchTwo[29999])
+for i = 1:4986
+    push!(v_tx,0)
 end
 
-figure("Expected Echo")
-title("Expected Echo")
-subplot(2,1,1)
-plot(t,MatchOne)
-subplot(2,1,2)
-plot(t,MatchTwo) #query
+MatchOne = v_tx
+MatchTwo = v_tx
+#
+# println(length(MatchOne))
+# println(length(MatchTwo))
+
+#=================================================================#
+
+# figure("Expected Echo")
+# title("Expected Echo")
+# subplot(2,1,1)
+# plot(MatchOne)
+# subplot(2,1,2)
+# plot(MatchTwo) #query
 #=================================================================
 Begin Loop
 =================================================================#
@@ -273,8 +275,8 @@ while true
     # cla()
     # plot(echo_2)
 
-    println(length(rc2))
-    println(length(rc1))
+    # println(length(rc2))
+    # println(length(rc1))
 
     #end of receiving
     #=================================================================#
@@ -284,8 +286,8 @@ while true
         push!(echo_2,echo_2[29999])
     end
 
-    println(length(echo_2))
-    println(length(echo_2))
+    # println(length(echo_one))
+    # println(length(echo_2))
 
     #=================================================================
     The signals
@@ -357,24 +359,28 @@ while true
     v_bb1 = v_anal1.*exp.(-j*2*pi*f0.*t);
     V_BB1 = fft(v_bb1);
 
-    v_bb2 = v_anal1.*exp.(-j*2*pi*f0.*t);
+    v_bb2 = v_anal2.*exp.(-j*2*pi*f0.*t);
     V_BB2 = fft(v_bb2);
 
     #=================================================================
     Angle Calculation
     =================================================================#
-    d = 0.025
-    k = 0
+    d = 0.01778
+    k = [-1,0,1]
     λ = c/f0
 
     Δψ = angle.( v_bb2 .* conj(v_bb1))
-    θ = asin.((λ/(2*pi*d)).* (Δψ.+(k*2*pi)))
+    θa = asin.((λ/(2*pi*d)).* (Δψ.+(k[2]*2*pi)))
+    θb = asin.((λ/(2*pi*d)).* (Δψ.+(k[2]*2*pi)))
+    θc = asin.((λ/(2*pi*d)).* (Δψ.+(k[3]*2*pi)))
 
     r_array = [r[2700],r[900]] #will have specific points
-    θ_array = [θ[2700],θ[900]] #will have specific points
+    θa_array = [θa[2700],θa[900]] #will have specific points
+    θb_array = [θb[2700],θb[900]]
+    θc_array = [θc[2700],θc[900]]
 
-    x = r_array.*cos.(θ_array)
-    y = r_array.*sin.(θ_array)
+    x = r.*cos.(θb)
+    y = r.*sin.(θb)
 
     #=================================================================
     plots
@@ -417,10 +423,12 @@ while true
 
     subplot(3,1,1)
     cla()
-    plot(v_bb1)
+    plot(r,v_mf1)
+    plot(r,v_mf2)
     subplot(3,1,2)
     cla()
-    plot(v_bb2) #query
+    plot(r,abs.(v_bb1)) #query
+    plot(r,abs.(v_bb2))
 
     # title("Base band signal 2")
     # cla()

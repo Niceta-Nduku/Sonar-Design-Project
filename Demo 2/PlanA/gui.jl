@@ -14,7 +14,7 @@ c = GtkButton("Exit")
 
 # Now let's place these graphical elements into the Grid:
 g[1:4,1] = a    # Cartesian coordinates, g[x,y]
-g[2,2] = b 
+g[2,2] = b
 #g[2,2] = d # spans both columns
 g[3,2] = c
 set_gtk_property!(g, :column_homogeneous, true)
@@ -25,14 +25,14 @@ function plotFig(w)
     ion()
 
     figure()
-    
+
     a = zeros(100)
     boolean = true
     k = 1
     for i in 1:100
         a[i] = i
     end
-    
+
     while boolean
         b = rand(Int, 100) # generate random array
         c = rand(Int, 100) # generate random array
@@ -53,21 +53,21 @@ function plotFig(w)
         # plot(a,d) # this will plot a random array of values
         sleep(1) # this will wait for 1 second
     end
-  end
+end
 signal_connect(plotFig, b, "clicked")
 
 #= function plotFig2(w)
     ion()
 
     figure()
-    
+
     a = zeros(100)
     boolean = true
     k = 1
     for i in 1:100
         a[i] = i
     end
-    
+
     while boolean
         b = rand(Int, 100) # generate random array
         c = rand(Int, 100) # generate random array
@@ -97,7 +97,14 @@ function exit(w)
   end
 signal_connect(exit, c, "clicked")
 
+# if !isinteractive()
+#     d = Condition()
+#     signal_connect(win, :destroy) do widget
+#         notify(c)
+#     end
+#     wait(c)
+# end
+
 #c = GtkScale(false, 0:10)     # a slider
 
 showall(win)
-
