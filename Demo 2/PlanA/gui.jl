@@ -1,7 +1,11 @@
+
 using Gtk
+#using Window
+using Gtk.ShortNames
 using PyPlot
 
-win = GtkWindow("2D Direction Finder")
+win = Window("gtkwait")
+#win = GtkWindow("2D Direction Finder")
 g = GtkGrid()
 a = GtkLabel("Transmit and Receive")  # a widget for entering text
 #set_gtk_property!(a, :text, )
@@ -97,14 +101,14 @@ function exit(w)
   end
 signal_connect(exit, c, "clicked")
 
-# if !isinteractive()
-#     d = Condition()
-#     signal_connect(win, :destroy) do widget
-#         notify(c)
-#     end
-#     wait(c)
-# end
-
 #c = GtkScale(false, 0:10)     # a slider
 
 showall(win)
+
+if !isinteractive()
+    d = Condition()
+    signal_connect(win, :destroy) do widget
+        notify(c)
+    end
+    wait(c)
+end

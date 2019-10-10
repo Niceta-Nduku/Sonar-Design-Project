@@ -167,7 +167,7 @@ Begin Loop
 =================================================================#
 
 ion()
-figure()
+figure("Final Plots")
 b = ""
 i=1
 list = list_serialports()
@@ -370,17 +370,37 @@ while true
     λ = c/f0
 
     Δψ = angle.( v_bb2 .* conj(v_bb1))
-    θa = asin.((λ/(2*pi*d)).* (Δψ.+(k[2]*2*pi)))
+    θa = asin.((λ/(2*pi*d)).* (Δψ.+(k[1]*2*pi)))
     θb = asin.((λ/(2*pi*d)).* (Δψ.+(k[2]*2*pi)))
     θc = asin.((λ/(2*pi*d)).* (Δψ.+(k[3]*2*pi)))
 
-    r_array = [r[2700],r[900]] #will have specific points
-    θa_array = [θa[2700],θa[900]] #will have specific points
-    θb_array = [θb[2700],θb[900]]
-    θc_array = [θc[2700],θc[900]]
+    xa = r.*cos.(θa)
+    ya = r.*sin.(θa)
 
-    x = r.*cos.(θb)
-    y = r.*sin.(θb)
+    xb = r.*cos.(θb)
+    yb = r.*sin.(θb)
+
+    xc = r.*cos.(θc)
+    yc = r.*sin.(θc)
+
+    #=================================================================#
+
+    for n in 2:length(v_bb1)-1
+    prev = abs.(v_bb1[n-1])
+    next = abs.(v_bb1[n+1])
+    current = abs.(v_bb1[n])
+
+    if current>prev && current>next && current>20
+       #doest have to do anything
+        println(r[n])
+    else
+        # if not a target then plot off screen
+        ya[n]=100
+        yb[n]=100
+        yc[n]=100
+
+    end
+
 
     #=================================================================
     plots
@@ -447,7 +467,13 @@ while true
     # title("2D")
     subplot(3,1,3)
     cla()
-    plot(x,y, ".")
+    grid("on")
+    plot(xa,ya, ".")
+    plot(xb,yb, ".")
+    plot(xc,yc, ".")
+
+    ylim(-10,10)
+    xlim(0,10)
 end
 
 
