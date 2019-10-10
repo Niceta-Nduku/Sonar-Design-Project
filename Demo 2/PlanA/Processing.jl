@@ -2,6 +2,7 @@ using SerialPorts
 using PyPlot
 using FFTW
 
+list= list_serialports()
 # #=================================================================
 # Empty array
 # might not use it
@@ -259,10 +260,10 @@ while true
     echo_one = (3.3/4096).*rc1
     echo_2 = (3.3/4096).*rc2
 
-    for j = 1:length(echo_one)
-        echo_one[j]=echo_one[j]-DummyOne[j]
-        echo_2[j]=echo_2[j]-DummyTwo[j]
-    end
+    # for j = 1:length(echo_one)
+    #     echo_one[j]=echo_one[j]-DummyOne[j]
+    #     echo_2[j]=echo_2[j]-DummyTwo[j]
+    # end
 
     # title("Unprocessed Echo one")
     # cla()
